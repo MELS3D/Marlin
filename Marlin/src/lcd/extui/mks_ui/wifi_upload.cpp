@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
 #include "../../../inc/MarlinConfigPre.h"
 
 #if BOTH(HAS_TFT_LVGL_UI, MKS_WIFI_MODULE)
@@ -36,7 +35,7 @@
 #define WIFI_IO1_SET()    WRITE(WIFI_IO1_PIN, HIGH);
 #define WIFI_IO1_RESET()  WRITE(WIFI_IO1_PIN, LOW);
 
-extern SZ_USART_FIFO WifiRxFifo;
+extern SZ_USART_FIFO  WifiRxFifo;
 
 extern int readUsartFifo(SZ_USART_FIFO *fifo, int8_t *buf, int32_t len);
 extern int writeUsartFifo(SZ_USART_FIFO * fifo, int8_t * buf, int32_t len);
@@ -265,7 +264,7 @@ EspUploadResult readPacket(uint8_t op, uint32_t *valp, size_t *bodyLen, uint32_t
     EspUploadResult stat;
 
     //IWDG_ReloadCounter();
-    hal.watchdog_refresh();
+    watchdog_refresh();
 
     if (getWifiTickDiff(startTime, getWifiTick()) > msTimeout)
       return timeout;
@@ -301,7 +300,7 @@ EspUploadResult readPacket(uint8_t op, uint32_t *valp, size_t *bodyLen, uint32_t
           return stat;
         }
         else if (state == header) {
-          // store the header byte
+          //store the header byte
           hdr[hdrIdx++] = c;
           if (hdrIdx >= headerLength) {
             // get the body length, prepare a buffer for it
@@ -423,7 +422,7 @@ EspUploadResult doCommand(uint8_t op, const uint8_t *data, size_t dataLen, uint3
 EspUploadResult Sync(uint16_t timeout) {
   uint8_t buf[36];
   EspUploadResult stat;
-  int i;
+  int i ;
 
   // compose the data for the sync attempt
   memset(buf, 0x55, sizeof(buf));
@@ -445,12 +444,12 @@ EspUploadResult Sync(uint16_t timeout) {
     for (;;) {
       size_t bodyLen;
       EspUploadResult rc = readPacket(ESP_SYNC, 0, &bodyLen, defaultTimeout);
-      hal.watchdog_refresh();
+      watchdog_refresh();
       if (rc != success || bodyLen != 2) break;
     }
   }
-  // DEBUG
-  //else printf("stat=%d\n", (int)stat);
+  //DEBUG
+  //else debug//printf("stat=%d\n", (int)stat);
   return stat;
 }
 
@@ -673,7 +672,7 @@ int32_t wifi_upload(int type) {
 
   while (esp_upload.state != upload_idle) {
     upload_spin();
-    hal.watchdog_refresh();
+    watchdog_refresh();
   }
 
   ResetWiFiForUpload(1);

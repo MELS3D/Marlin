@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -46,30 +46,32 @@ extern dwin_font_t dwin_font;
 void lcd_moveto_xy(const lcd_uint_t x, const lcd_uint_t y) { cursor.x = x; cursor.y = y; }
 
 void lcd_moveto(const lcd_uint_t col, const lcd_uint_t row) {
-  lcd_moveto_xy(col * dwin_font.width, row * (dwin_font.height + EXTRA_ROW_HEIGHT) + EXTRA_ROW_HEIGHT / 2);
+  cursor.x = col * dwin_font.width;
+  cursor.y = (row * (dwin_font.height + EXTRA_ROW_HEIGHT)) + (EXTRA_ROW_HEIGHT / 2);
 }
 
-inline void lcd_advance_cursor(const uint8_t len=1) { cursor.x += len * dwin_font.width; }
+inline void lcd_advance_cursor() { cursor.x += dwin_font.width; }
 
 void lcd_put_int(const int i) {
   // TODO: Draw an int at the cursor position, advance the cursor
 }
 
 int lcd_put_dwin_string() {
-  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, dwin_string.string());
-  lcd_advance_cursor(dwin_string.length);
-  return dwin_string.length;
+  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, (char*)dwin_string.string());
+  cursor.x += dwin_string.length() * dwin_font.width;
+  return dwin_string.length();
 }
 
 // return < 0 on error
 // return the advanced cols
-int lcd_put_lchar_max(const lchar_t &c, const pixel_len_t max_length) {
-  dwin_string.set(c);
+int lcd_put_wchar_max(wchar_t c, pixel_len_t max_length) {
+  dwin_string.set();
+  dwin_string.add(c);
   dwin_string.truncate(max_length);
   // Draw the char(s) at the cursor and advance the cursor
-  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, dwin_string.string());
-  lcd_advance_cursor(dwin_string.length);
-  return dwin_string.length;
+  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, (char*)dwin_string.string());
+  cursor.x += dwin_string.length() * dwin_font.width;
+  return dwin_string.length();
 }
 
 /**
@@ -83,34 +85,35 @@ int lcd_put_lchar_max(const lchar_t &c, const pixel_len_t max_length) {
  *
  * Draw a UTF-8 string
  */
-static int lcd_put_u8str_max_cb(const char * utf8_str, read_byte_cb_t cb_read_byte, const pixel_len_t max_length) {
-  const uint8_t *p = (uint8_t *)utf8_str;
+static int lcd_put_u8str_max_cb(const char * utf8_str, uint8_t (*cb_read_byte)(uint8_t * str), pixel_len_t max_length) {
+  uint8_t *p = (uint8_t *)utf8_str;
   dwin_string.set();
-  while (dwin_string.length < max_length) {
-    lchar_t wc;
-    p = get_utf8_value_cb(p, cb_read_byte, wc);
-    if (!wc) break;
-    dwin_string.add(wc);
+  while (dwin_string.length() < max_length) {
+    wchar_t ch = 0;
+    p = get_utf8_value_cb(p, cb_read_byte, &ch);
+    if (!ch) break;
+    dwin_string.add(ch);
   }
-  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, dwin_string.string());
-  lcd_advance_cursor(dwin_string.length);
-  return dwin_string.length;
+  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, (char*)dwin_string.string());
+  cursor.x += dwin_string.length() * dwin_font.width;
+  return dwin_string.length();
 }
 
-int lcd_put_u8str_max(const char * utf8_str, const pixel_len_t max_length) {
+int lcd_put_u8str_max(const char * utf8_str, pixel_len_t max_length) {
   return lcd_put_u8str_max_cb(utf8_str, read_byte_ram, max_length);
 }
 
-int lcd_put_u8str_max_P(PGM_P utf8_pstr, const pixel_len_t max_length) {
-  return lcd_put_u8str_max_cb(utf8_pstr, read_byte_rom, max_length);
+int lcd_put_u8str_max_P(PGM_P utf8_str_P, pixel_len_t max_length) {
+  return lcd_put_u8str_max_cb(utf8_str_P, read_byte_rom, max_length);
 }
 
-lcd_uint_t lcd_put_u8str_P(PGM_P const ptpl, const int8_t ind, const char * const cstr/*=nullptr*/, FSTR_P const fstr/*=nullptr*/, const lcd_uint_t maxlen/*=LCD_WIDTH*/) {
-  dwin_string.set(ptpl, ind, cstr, fstr);
+lcd_uint_t lcd_put_u8str_ind_P(PGM_P const pstr, const int8_t ind, PGM_P const inStr/*=nullptr*/, const lcd_uint_t maxlen/*=LCD_WIDTH*/) {
+  dwin_string.set();
+  dwin_string.add((uint8_t*)pstr, ind, (uint8_t*)inStr);
   dwin_string.truncate(maxlen);
-  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, dwin_string.string());
-  lcd_advance_cursor(dwin_string.length);
-  return dwin_string.length;
+  DWIN_Draw_String(dwin_font.solid, dwin_font.index, dwin_font.fg, dwin_font.bg, cursor.x, cursor.y, (char*)dwin_string.string());
+  cursor.x += dwin_string.length() * dwin_font.width;
+  return dwin_string.length();
 }
 
 #if ENABLED(DEBUG_LCDPRINT)

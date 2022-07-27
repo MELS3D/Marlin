@@ -163,11 +163,9 @@
 //
 // Průša i3 MK2 Multiplexer Support
 //
-#if HAS_PRUSA_MMU1
-  #define E_MUX0_PIN                          17
-  #define E_MUX1_PIN                          16
-  #define E_MUX2_PIN                          78  // 84 in MK2 Firmware, with BEEPER as 78
-#endif
+#define E_MUX0_PIN                            17
+#define E_MUX1_PIN                            16
+#define E_MUX2_PIN                            78  // 84 in MK2 Firmware, with BEEPER as 78
 
 //
 // LCD / Controller
@@ -206,11 +204,5 @@
 
   #endif // IS_ULTIPANEL || TOUCH_UI_ULTIPANEL
 #endif // HAS_WIRED_LCD
-
-#if IS_U8GLIB_ST7920
-  #define BOARD_ST7920_DELAY_1                 0
-  #define BOARD_ST7920_DELAY_2               250
-  #define BOARD_ST7920_DELAY_3                 0
-#endif
 
 #undef MK3_FAN_PINS
