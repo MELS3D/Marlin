@@ -19,28 +19,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-#pragma once
+#include "../platforms.h"
 
-#include "platforms.h"
+#ifdef __PLAT_RP2040__
 
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
+#include "../../inc/MarlinConfigPre.h"
 
-#include HAL_PATH(.,HAL.h)
+#if NEEDS_HARDWARE_PWM
+#warning "HARDWARE_PWM is done using Analog write"
 
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
+#include "HAL.h"
+#include "timers.h"
 
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
-#endif
+//void set_pwm_frequency(const pin_t pin, int f_desired) {
+//}
 
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
-#endif
+//void set_pwm_duty(const pin_t pin, const uint16_t v, const uint16_t v_size/*=255*/, const bool invert/*=false*/) {
+//}
 
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
-#endif
+#endif // NEEDS_HARDWARE_PWM
+#endif // __PLAT_RP2040__

@@ -459,6 +459,12 @@
 #define BOARD_BRICOLEMON_LITE_V1_0    6102  // Bricolemon Lite
 
 //
+// RaspberryPi
+//
+
+#define BOARD_MELS3D_PI_PRO_V1_0   6200 // Mels3D Pi Pro V1.0
+
+//
 // Custom board
 //
 
