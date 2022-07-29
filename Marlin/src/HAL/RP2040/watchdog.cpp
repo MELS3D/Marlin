@@ -19,28 +19,37 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-#pragma once
+#include "../platforms.h"
 
-#include "platforms.h"
+#ifdef __PLAT_RP2040__
 
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
+#include "../../inc/MarlinConfigPre.h"
 
-#include HAL_PATH(.,HAL.h)
+#if ENABLED(USE_WATCHDOG)
 
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
+#define WDT_TIMEOUT_US TERN(WATCHDOG_DURATION_8S, 8000000, 4000000) // 4 or 8 second timeout
 
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
-#endif
+#include "../../inc/MarlinConfig.h"
 
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
-#endif
+#include "watchdog.h"
 
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
-#endif
+extern "C" {
+  #include "hardware/watchdog.h"
+} 
+
+void watchdog_init() {
+  #if DISABLED(DISABLE_WATCHDOG_INIT)
+    static_assert(WDT_TIMEOUT_US > 1000, "WDT Timout is too small, aborting");
+ //   watchdog_enable(WDT_TIMEOUT_US/1000 ,1); //todo: implement
+  #endif
+}
+
+void HAL_watchdog_refresh() {
+  watchdog_update();
+  #if DISABLED(PINS_DEBUGGING) && PIN_EXISTS(LED)
+    TOGGLE(LED_PIN);  // heartbeat indicator
+  #endif
+}
+
+#endif // USE_WATCHDOG
+#endif // __PLAT_RP2040__

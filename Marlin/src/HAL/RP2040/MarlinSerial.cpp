@@ -2,9 +2,6 @@
  * Marlin 3D Printer Firmware
  * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
- * Based on Sprinter and grbl.
- * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,28 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-#pragma once
+#include "../platforms.h"
 
-#include "platforms.h"
+#ifdef __PLAT_RP2040__
 
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#include "../../inc/MarlinConfig.h"
+#include "MarlinSerial.h"
+
+#if ENABLED(EMERGENCY_PARSER)
+  #include "../../feature/e_parser.h"
 #endif
 
-#include HAL_PATH(.,HAL.h)
-
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
-
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
+#define _IMPLEMENT_SERIAL(X) DefaultSerial##X MSerial##X(false, Serial##X)
+#define IMPLEMENT_SERIAL(X)  _IMPLEMENT_SERIAL(X)
+#if WITHIN(SERIAL_PORT, 0, 3)
+  IMPLEMENT_SERIAL(SERIAL_PORT);
 #endif
 
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
-#endif
-
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
-#endif
+#endif // __PLAT_RP2040__

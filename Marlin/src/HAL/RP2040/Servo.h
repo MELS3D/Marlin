@@ -4,6 +4,7 @@
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2017 Victor Perez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,26 +22,33 @@
  */
 #pragma once
 
-#include "platforms.h"
+#include <Servo.h>
 
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
+#include "../../core/millis_t.h"
 
-#include HAL_PATH(.,HAL.h)
+// Inherit and expand on the official library
+class libServo {
+  public:
+    libServo();
+    int8_t attach(const int pin = 0); // pin == 0 uses value from previous call
+    int8_t attach(const int pin, const int min, const int max);
+    void detach() { stm32_servo.detach(); }
+    int read() { return stm32_servo.read(); }
+    void move(const int value);
 
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
+    void pause();
+    void resume();
 
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
-#endif
+    static void pause_all_servos();
+    static void resume_all_servos();
+    static void setInterruptPriority(uint32_t preemptPriority, uint32_t subPriority);
 
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
-#endif
+  private:
+    Servo stm32_servo;
 
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
-#endif
+    int servo_pin = 0;
+    millis_t delay = 0;
+
+    bool was_attached_before_pause;
+    int value_before_pause;
+};

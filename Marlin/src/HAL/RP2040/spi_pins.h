@@ -2,9 +2,6 @@
  * Marlin 3D Printer Firmware
  * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
- * Based on Sprinter and grbl.
- * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,26 +18,18 @@
  */
 #pragma once
 
-#include "platforms.h"
-
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+/**
+ * Define SPI Pins: SCK, MISO, MOSI, SS
+ */
+#ifndef SD_SCK_PIN
+  #define SD_SCK_PIN  PIN_SPI_SCK
 #endif
-
-#include HAL_PATH(.,HAL.h)
-
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
-
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
+#ifndef SD_MISO_PIN
+  #define SD_MISO_PIN PIN_SPI_MISO
 #endif
-
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
+#ifndef SD_MOSI_PIN
+  #define SD_MOSI_PIN PIN_SPI_MOSI
 #endif
-
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
+#ifndef SD_SS_PIN
+  #define SD_SS_PIN   PIN_SPI_SS
 #endif

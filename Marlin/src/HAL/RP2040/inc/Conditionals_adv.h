@@ -21,26 +21,15 @@
  */
 #pragma once
 
-#include "platforms.h"
-
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#if BOTH(SDSUPPORT, USBD_USE_CDC_MSC) && DISABLED(NO_SD_HOST_DRIVE)
+  #define HAS_SD_HOST_DRIVE 1
 #endif
 
-#include HAL_PATH(.,HAL.h)
-
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
-
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
+// Fix F_CPU not being a compile-time constant in STSTM32 framework
+#ifdef BOARD_F_CPU
+  #undef F_CPU
+  #define F_CPU BOARD_F_CPU
 #endif
 
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
-#endif
-
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
-#endif
+// The Sensitive Pins array is not optimizable
+#define RUNTIME_ONLY_ANALOG_TO_DIGITAL

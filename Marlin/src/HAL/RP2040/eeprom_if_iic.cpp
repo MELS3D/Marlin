@@ -19,28 +19,37 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-#pragma once
+#include "../platforms.h"
 
-#include "platforms.h"
+#ifdef __PLAT_RP2040__
 
-#ifndef GCC_VERSION
-  #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
+/**
+ * Platform-independent Arduino functions for I2C EEPROM.
+ * Enable USE_SHARED_EEPROM if not supplied by the framework.
+ */
 
-#include HAL_PATH(.,HAL.h)
+#include "../../inc/MarlinConfig.h"
 
-#define HAL_ADC_RANGE _BV(HAL_ADC_RESOLUTION)
+#if ENABLED(IIC_BL24CXX_EEPROM)
 
-#ifndef I2C_ADDRESS
-  #define I2C_ADDRESS(A) uint8_t(A)
-#endif
+#include "../../libs/BL24CXX.h"
+#include "../shared/eeprom_if.h"
 
-// Needed for AVR sprintf_P PROGMEM extension
-#ifndef S_FMT
-  #define S_FMT "%s"
-#endif
+void eeprom_init() { BL24CXX::init(); }
 
-// String helper
-#ifndef PGMSTR
-  #define PGMSTR(NAM,STR) const char NAM[] = STR
-#endif
+// ------------------------
+// Public functions
+// ------------------------
+
+void eeprom_write_byte(uint8_t *pos, uint8_t value) {
+  const unsigned eeprom_address = (unsigned)pos;
+  return BL24CXX::writeOneByte(eeprom_address, value);
+}
+
+uint8_t eeprom_read_byte(uint8_t *pos) {
+  const unsigned eeprom_address = (unsigned)pos;
+  return BL24CXX::readOneByte(eeprom_address);
+}
+
+#endif // IIC_BL24CXX_EEPROM
+#endif // __PLAT_RP2040__
